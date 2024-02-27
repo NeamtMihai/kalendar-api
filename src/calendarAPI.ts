@@ -86,6 +86,16 @@ class Calendar {
     return updatedEvent;
   }
 
+  updateRecurringEventRule(eventId: string, newRule: RecurrenceRule): CalendarEvent {
+    const eventIndex = this.recurringEvents.findIndex(event => event.id === eventId);
+    if (eventIndex === -1) throw new Error("Recurring event not found");
+
+    const updatedEvent = { ...this.recurringEvents[eventIndex], recurrenceRule: newRule };
+    this.recurringEvents[eventIndex] = updatedEvent;
+
+    return updatedEvent;
+  }
+
   deleteEvent(id: string): boolean {
     const initialLength = this.events.length;
     this.events = this.events.filter(event => event.id !== id);
