@@ -1,0 +1,11 @@
+{
+  "roots": ["<rootDir>"],
+  "modulePathIgnorePatterns": ["<rootDir>/dist"],
+  "transform": {
+    "^.+\\.tsx?$": "ts-jest"
+  },
+  "testRegex": "((\\.|/)(test))\\.ts$",
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "node"],
+  "verbose": false,
+  "silent": true
+}
