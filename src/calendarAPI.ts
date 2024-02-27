@@ -1,7 +1,9 @@
-import { Duration, CalendarEvent } from './types';
+import { Duration, CalendarEvent, RecurrenceRule } from './types';
 
 class Calendar {
   private events: CalendarEvent[] = [];
+  private recurringEvents: CalendarEvent[] = [];
+
 
   createEvent(start: Date, duration: Duration, title: string, allowOverlap = false): CalendarEvent {
     const newEvent: CalendarEvent = { id: Math.random().toString(36).substr(2, 9), start, duration, title };
@@ -15,7 +17,59 @@ class Calendar {
   }
 
   listEvents(startDate: Date, endDate: Date): CalendarEvent[] {
-    return this.events.filter(event => event.start >= startDate && event.start <= endDate);
+    const eventsInRange = this.events.filter(event => event.start >= startDate && event.start <= endDate);
+    const recurringEventsInRange = this.getRecurringEventsInRange(startDate, endDate);
+    return [...eventsInRange, ...recurringEventsInRange];
+  }
+
+  createRecurringEvent(start: Date, duration: Duration, title: string, rule: RecurrenceRule): CalendarEvent | string {
+    const newRecurringEvent: CalendarEvent = { id: Math.random().toString(36).substr(2, 9), start, duration, title };
+
+    // Apply recurrence rule and add recurring events
+    this.applyRecurrenceRule(newRecurringEvent, rule);
+    this.recurringEvents.push(newRecurringEvent);
+    
+    return newRecurringEvent;
+  }
+
+  private getRecurringDatesInRange(event: CalendarEvent, startDate: Date, endDate: Date): CalendarEvent[] {
+    if(!event.recurrenceRule){
+      return [];
+    }
+    const recurringDates: CalendarEvent[] = [];
+    const currentDate = event.start;
+
+    while (currentDate <= endDate) {
+      if (currentDate >= startDate) {
+        recurringDates.push({ ...event, start: new Date(currentDate) });
+      }
+
+      // Apply recurrence rule to calculate next occurrence
+      currentDate.setDate(currentDate.getDate() + event.recurrenceRule.interval);
+      switch (event.recurrenceRule.frequency) {
+        case 'daily':
+          break;
+        case 'weekly':
+          currentDate.setDate(currentDate.getDate() + (7 * event.recurrenceRule.interval));
+          break;
+        case 'monthly':
+          currentDate.setMonth(currentDate.getMonth() + event.recurrenceRule.interval);
+          break;
+      }
+    }
+
+    return recurringDates;
+  }
+
+  private applyRecurrenceRule(event: CalendarEvent, rule: RecurrenceRule): void {
+    event.recurrenceRule = rule;
+  }
+
+  private getRecurringEventsInRange(startDate: Date, endDate: Date): CalendarEvent[] {
+    return this.recurringEvents.reduce((acc: CalendarEvent[], event: CalendarEvent) => {
+      const recurringDates = this.getRecurringDatesInRange(event, startDate, endDate);
+      return [...acc, ...recurringDates];
+    }, []);
   }
 
   updateEvent(id: string, start: Date, duration: Duration, title: string, allowOverlap = false): CalendarEvent | string {
