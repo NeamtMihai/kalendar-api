@@ -22,7 +22,7 @@ class Calendar {
     return [...eventsInRange, ...recurringEventsInRange];
   }
 
-  createRecurringEvent(start: Date, duration: Duration, title: string, rule: RecurrenceRule): CalendarEvent | string {
+  createRecurringEvent(start: Date, duration: Duration, title: string, rule: RecurrenceRule): CalendarEvent {
     const newRecurringEvent: CalendarEvent = { id: Math.random().toString(36).substr(2, 9), start, duration, title };
 
     // Apply recurrence rule and add recurring events
@@ -72,9 +72,9 @@ class Calendar {
     }, []);
   }
 
-  updateEvent(id: string, start: Date, duration: Duration, title: string, allowOverlap = false): CalendarEvent | string {
+  updateEvent(id: string, start: Date, duration: Duration, title: string, allowOverlap = false): CalendarEvent {
     const eventIndex = this.events.findIndex(event => event.id === id);
-    if (eventIndex === -1) return "Event not found";
+    if (eventIndex === -1) throw new Error( "Event not found");
 
     const updatedEvent: CalendarEvent = { id, start, duration, title };
 
@@ -97,9 +97,10 @@ class Calendar {
   }
 
   deleteEvent(id: string): boolean {
-    const initialLength = this.events.length;
+    const initialLength = this.events.length + this.recurringEvents.length;
     this.events = this.events.filter(event => event.id !== id);
-    return this.events.length !== initialLength;
+    this.recurringEvents = this.recurringEvents.filter(event => event.id !== id);
+    return this.events.length  + this.recurringEvents.length !== initialLength;
   }
 
   private isOverlap(event1: CalendarEvent, event2: CalendarEvent): boolean {
